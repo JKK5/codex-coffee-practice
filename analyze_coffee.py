@@ -55,12 +55,7 @@ def load_valid_records(path: Path) -> tuple[list[dict[str, object]], int]:
     return valid_records, invalid_count
 
 
-def print_analysis(records: list[dict[str, object]], invalid_count: int) -> None:
-    if not records:
-        print("분석 가능한 정상 데이터가 없습니다.")
-        print(f"건너뛴 잘못된 행: {invalid_count}개")
-        return
-
+def calculate_analysis(records: list[dict[str, object]]) -> dict[str, object]:
     average_price = sum(float(row["price"]) for row in records) / len(records)
     average_rating = sum(float(row["rating"]) for row in records) / len(records)
     highest_rating = max(float(row["rating"]) for row in records)
@@ -71,16 +66,54 @@ def print_analysis(records: list[dict[str, object]], invalid_count: int) -> None
     ratings_by_country: dict[str, list[float]] = defaultdict(list)
     for row in records:
         ratings_by_country[str(row["country"])].append(float(row["rating"]))
+    country_averages = {
+        country: sum(ratings) / len(ratings)
+        for country, ratings in sorted(ratings_by_country.items())
+    }
 
-    print(f"평균 가격: {average_price:,.0f}원")
-    print(f"평균 평점: {average_rating:.2f}")
+    return {
+        "average_price": average_price,
+        "average_rating": average_rating,
+        "highest_rated": highest_rated,
+        "country_averages": country_averages,
+    }
+
+
+def print_analysis(records: list[dict[str, object]], invalid_count: int) -> None:
+    if not records:
+        print("분석 가능한 정상 데이터가 없습니다.")
+        print(f"건너뛴 잘못된 행: {invalid_count}개")
+        return
+
+    analysis = calculate_analysis(records)
+
+    print(f"평균 가격: {float(analysis['average_price']):,.0f}원")
+    print(f"평균 평점: {float(analysis['average_rating']):.2f}")
     print("가장 평점 높은 커피:")
-    for row in highest_rated:
+    for row in analysis["highest_rated"]:
         print(f"  {row['coffee']} ({float(row['rating']):.1f})")
     print("국가별 평균 평점:")
-    for country, ratings in sorted(ratings_by_country.items()):
-        print(f"  {country}: {sum(ratings) / len(ratings):.2f}")
+    for country, average in analysis["country_averages"].items():
+        print(f"  {country}: {average:.2f}")
     print(f"건너뛴 잘못된 행: {invalid_count}개")
+
+
+def save_analysis_csv(records: list[dict[str, object]], path: Path) -> None:
+    with path.open("w", encoding="utf-8-sig", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(["metric", "name", "value"])
+        if not records:
+            return
+
+        analysis = calculate_analysis(records)
+        writer.writerow(["average_price", "", f"{analysis['average_price']:.2f}"])
+        writer.writerow(["average_rating", "", f"{analysis['average_rating']:.2f}"])
+        for row in analysis["highest_rated"]:
+            writer.writerow(
+                ["highest_rated_coffee", row["coffee"], f"{row['rating']:.2f}"]
+            )
+        for country, average in analysis["country_averages"].items():
+            writer.writerow(["country_average_rating", country, f"{average:.2f}"])
 
 
 def main() -> None:
@@ -92,11 +125,18 @@ def main() -> None:
         default=DEFAULT_CSV_PATH,
         help="분석할 CSV 경로 (기본값: coffee_log.csv)",
     )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        help="분석 결과를 저장할 CSV 경로",
+    )
     args = parser.parse_args()
 
     try:
         records, invalid_count = load_valid_records(args.csv_path)
         print_analysis(records, invalid_count)
+        if args.output:
+            save_analysis_csv(records, args.output)
     except (OSError, ValueError) as error:
         parser.exit(1, f"오류: {error}\n")
 

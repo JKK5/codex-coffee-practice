@@ -1,10 +1,11 @@
 import contextlib
+import csv
 import io
 import tempfile
 import unittest
 from pathlib import Path
 
-from analyze_coffee import load_valid_records, print_analysis
+from analyze_coffee import load_valid_records, print_analysis, save_analysis_csv
 
 
 BASE_DIR = Path(__file__).parent
@@ -66,6 +67,38 @@ class AnalyzeCoffeeTest(unittest.TestCase):
             path.write_text(csv_text, encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "rating"):
                 load_valid_records(path)
+
+    def test_analysis_can_be_saved_to_csv(self) -> None:
+        records, invalid_count = load_valid_records(BASE_DIR / "coffee_log.csv")
+        with tempfile.TemporaryDirectory() as directory:
+            output_path = Path(directory) / "summary.csv"
+            save_analysis_csv(records, output_path)
+            with output_path.open("r", encoding="utf-8-sig", newline="") as file:
+                rows = list(csv.DictReader(file))
+
+        self.assertEqual(invalid_count, 0)
+        self.assertIn(
+            {"metric": "average_price", "name": "", "value": "6750.00"}, rows
+        )
+        self.assertIn(
+            {"metric": "average_rating", "name": "", "value": "4.25"}, rows
+        )
+        self.assertIn(
+            {
+                "metric": "highest_rated_coffee",
+                "name": "Ethiopia Sidama",
+                "value": "5.00",
+            },
+            rows,
+        )
+        self.assertIn(
+            {
+                "metric": "country_average_rating",
+                "name": "Ethiopia",
+                "value": "4.50",
+            },
+            rows,
+        )
 
 
 if __name__ == "__main__":
