@@ -3,6 +3,7 @@ import csv
 import math
 from collections import defaultdict
 from pathlib import Path
+from statistics import median
 
 
 DEFAULT_CSV_PATH = Path(__file__).with_name("coffee_log.csv")
@@ -57,6 +58,7 @@ def load_valid_records(path: Path) -> tuple[list[dict[str, object]], int]:
 
 def calculate_analysis(records: list[dict[str, object]]) -> dict[str, object]:
     average_price = sum(float(row["price"]) for row in records) / len(records)
+    median_price = median(float(row["price"]) for row in records)
     average_rating = sum(float(row["rating"]) for row in records) / len(records)
     highest_rating = max(float(row["rating"]) for row in records)
     highest_rated = [
@@ -73,6 +75,7 @@ def calculate_analysis(records: list[dict[str, object]]) -> dict[str, object]:
 
     return {
         "average_price": average_price,
+        "median_price": median_price,
         "average_rating": average_rating,
         "highest_rated": highest_rated,
         "country_averages": country_averages,
@@ -88,6 +91,7 @@ def print_analysis(records: list[dict[str, object]], invalid_count: int) -> None
     analysis = calculate_analysis(records)
 
     print(f"평균 가격: {float(analysis['average_price']):,.0f}원")
+    print(f"중앙값 가격: {float(analysis['median_price']):,.0f}원")
     print(f"평균 평점: {float(analysis['average_rating']):.2f}")
     print("가장 평점 높은 커피:")
     for row in analysis["highest_rated"]:
@@ -107,6 +111,7 @@ def save_analysis_csv(records: list[dict[str, object]], path: Path) -> None:
 
         analysis = calculate_analysis(records)
         writer.writerow(["average_price", "", f"{analysis['average_price']:.2f}"])
+        writer.writerow(["median_price", "", f"{analysis['median_price']:.2f}"])
         writer.writerow(["average_rating", "", f"{analysis['average_rating']:.2f}"])
         for row in analysis["highest_rated"]:
             writer.writerow(

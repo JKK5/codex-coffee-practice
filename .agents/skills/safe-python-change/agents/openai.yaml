@@ -1,0 +1,4 @@
+interface:
+  display_name: "Safe Python Change"
+  short_description: "Safely change Python code with tests and Git checks"
+  default_prompt: "Use $safe-python-change to make a minimal, tested Python change in this repository."

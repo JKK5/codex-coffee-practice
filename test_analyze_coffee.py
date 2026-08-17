@@ -5,7 +5,12 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from analyze_coffee import load_valid_records, print_analysis, save_analysis_csv
+from analyze_coffee import (
+    calculate_analysis,
+    load_valid_records,
+    print_analysis,
+    save_analysis_csv,
+)
 
 
 BASE_DIR = Path(__file__).parent
@@ -27,6 +32,7 @@ class AnalyzeCoffeeTest(unittest.TestCase):
         self.assertEqual(len(records), 4)
         self.assertEqual(invalid_count, 0)
         self.assertIn("평균 가격: 6,750원", output)
+        self.assertIn("중앙값 가격: 6,750원", output)
         self.assertIn("평균 평점: 4.25", output)
         self.assertIn("Ethiopia Sidama (5.0)", output)
         self.assertIn("Ethiopia: 4.50", output)
@@ -81,6 +87,9 @@ class AnalyzeCoffeeTest(unittest.TestCase):
             {"metric": "average_price", "name": "", "value": "6750.00"}, rows
         )
         self.assertIn(
+            {"metric": "median_price", "name": "", "value": "6750.00"}, rows
+        )
+        self.assertIn(
             {"metric": "average_rating", "name": "", "value": "4.25"}, rows
         )
         self.assertIn(
@@ -99,6 +108,18 @@ class AnalyzeCoffeeTest(unittest.TestCase):
             },
             rows,
         )
+
+    def test_median_price_uses_middle_value(self) -> None:
+        records = [
+            {"coffee": "A", "country": "Test", "price": 100.0, "rating": 3.0},
+            {"coffee": "B", "country": "Test", "price": 200.0, "rating": 4.0},
+            {"coffee": "C", "country": "Test", "price": 1000.0, "rating": 5.0},
+        ]
+
+        analysis = calculate_analysis(records)
+
+        self.assertEqual(analysis["average_price"], 1300 / 3)
+        self.assertEqual(analysis["median_price"], 200.0)
 
 
 if __name__ == "__main__":
