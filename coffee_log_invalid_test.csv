@@ -1,0 +1,8 @@
+date,coffee,country,price,rating
+2026-08-01," Brazil Santos "," Brazil ",5000,4.0
+2026-08-02,Invalid Text,Brazil,6000,abc
+2026-08-03,Invalid Empty,Kenya,7000,
+2026-08-04,Invalid Range,Colombia,8000,6.0
+2026-08-05,Kenya Peaberry,Kenya,7000,5.0
+2026-08-06,Invalid NaN,Peru,5000,NaN
+2026-08-07,Invalid Infinity,Peru,Infinity,4.0

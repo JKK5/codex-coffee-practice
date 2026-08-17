@@ -1,0 +1,16 @@
+# Python이 실행 중 자동으로 만드는 캐시 파일
+__pycache__/
+*.py[cod]
+
+# 가상 환경 및 테스트 도구의 임시 파일
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# 운영체제와 편집기가 만드는 프로젝트 외 파일
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
