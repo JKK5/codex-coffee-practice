@@ -33,6 +33,8 @@ class AnalyzeCoffeeTest(unittest.TestCase):
         self.assertEqual(invalid_count, 0)
         self.assertIn("평균 가격: 6,750원", output)
         self.assertIn("중앙값 가격: 6,750원", output)
+        self.assertIn("최소 가격: 6,000원", output)
+        self.assertIn("최대 가격: 7,500원", output)
         self.assertIn("평균 평점: 4.25", output)
         self.assertIn("Ethiopia Sidama (5.0)", output)
         self.assertIn("Ethiopia: 4.50", output)
@@ -90,6 +92,12 @@ class AnalyzeCoffeeTest(unittest.TestCase):
             {"metric": "median_price", "name": "", "value": "6750.00"}, rows
         )
         self.assertIn(
+            {"metric": "minimum_price", "name": "", "value": "6000.00"}, rows
+        )
+        self.assertIn(
+            {"metric": "maximum_price", "name": "", "value": "7500.00"}, rows
+        )
+        self.assertIn(
             {"metric": "average_rating", "name": "", "value": "4.25"}, rows
         )
         self.assertIn(
@@ -120,6 +128,8 @@ class AnalyzeCoffeeTest(unittest.TestCase):
 
         self.assertEqual(analysis["average_price"], 1300 / 3)
         self.assertEqual(analysis["median_price"], 200.0)
+        self.assertEqual(analysis["minimum_price"], 100.0)
+        self.assertEqual(analysis["maximum_price"], 1000.0)
 
 
 if __name__ == "__main__":
